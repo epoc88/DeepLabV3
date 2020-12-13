@@ -1,0 +1,1 @@
+cv2.imshow("Image",masked_image+back2)
