@@ -149,3 +149,45 @@ FULL_COLOR_MAP = label_to_color_image(FULL_LABEL_MAP)
 
 MODEL = DeepLabModel('deeplab_model.tar.gz')
 print('model loaded successfully!')
+
+
+
+cap = cv2.VideoCapture(0)
+ret, frame = cap.read()
+
+while True:
+  ret, frame = cap.read()
+
+  if ret:
+    # rest of the following code
+    cv2_im = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    pil_im = Image.fromarray(cv2_im)
+
+    # DeepLAb model output
+    resized_im, seg_map = MODEL.run(pil_im)
+    arr = np.asarray(seg_map)
+
+    seg_image = label_to_color_image(seg_map).astype(np.uint8)
+
+    seg_image = seg_image[:, :, 0] > 100
+    seg_image = np.uint8(seg_image) * 255
+    seg_image = cv2.cvtColor(seg_image, cv2.COLOR_GRAY2BGR)
+    seg_image = 255 - seg_image
+
+    back = np.copy(background)
+
+    masked_image = cv2.resize(frame, (513, 384))
+    masked_image[seg_image != 0] = 0
+
+    back[seg_image == 0] = 0
+
+    cv2.imshow("Image", masked_image + back2)
+
+    if (cv2.waitKey(1) == 27):
+      break
+
+  else:
+    break
+
+cv2.destroyAllWindows()
+cap.release()
